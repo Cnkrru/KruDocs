@@ -5,8 +5,8 @@ import { join, relative, resolve, sep } from 'node:path'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import generateSitemap from 'vite-ssg-sitemap'
-import compileArticles from './src/.build/parseArticle.ts'
-import { SITE_TITLE, SITE_URL } from './src/config/site.ts'
+import compileArticles from './src/build/parseArticle.ts'
+import { SITE_TITLE, SITE_URL } from './src/config/site.config.ts'
 import 'vite-ssg'
 
 // katex 公式产物里的 MathML 标签，告知 Vue 模板编译器按原生元素处理（不解析为组件）
@@ -144,7 +144,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // @ 指向 theme：theme 内是完整 Vue 框架，内部引用不带 theme 前缀（@/components）
+      '@': fileURLToPath(new URL('./src/theme', import.meta.url)),
+      // @config 指向 src/config：编译期输入的配置（site.ts / sidebar.json），theme 内经此别名引用
+      '@config': fileURLToPath(new URL('./src/config', import.meta.url)),
     },
   },
   server: {

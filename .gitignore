@@ -44,3 +44,5 @@ __screenshots__/
 # md 编译中间产物（.build 脚本生成的 SFC / 元数据缓存）
 .cache/
 docs/
+# 编译产物：post.json 由编译期脚本生成，不进仓库
+public/config/

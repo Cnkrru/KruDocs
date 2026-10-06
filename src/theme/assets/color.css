@@ -1,0 +1,48 @@
+/* ============================================================
+   沉稳蓝主题（对齐 GitBook / VitePress 行业标准）
+   亮色：白底墨字 + 蓝色主色   暗色：黑底灰白字 + 浅蓝主色
+   ============================================================ */
+
+.light {
+    --g-color:#218bff;                     /* 浅蓝主色 */
+    --g-bg:#ffffff;                         /* 纯白背景 */
+    --glass-r:247;                          /* 玻璃底色 R */
+    --glass-g:247;                          /* 玻璃底色 G */
+    --glass-b:248;                          /* 玻璃底色 B */
+    --g-text:#1f2328;                      /* 墨色正文 */
+    --g-hover: #0969da;                     /* 深一档 hover */
+    --g-shadow: rgba(0, 0, 0, 0.08);        /* 黑色阴影 */
+    --g-gradient: linear-gradient(90deg, #0969da, #0550ae, #0969da);
+
+    /* shiki CSS 变量主题（亮色档） */
+    --shiki-background: #f6f8fa;
+    --shiki-foreground: #1f2328;
+    --shiki-token-keyword: #cf222e;
+    --shiki-token-function: #8250df;
+    --shiki-token-string-expression: #0a3069;
+    --shiki-token-constant: #0550ae;
+    --shiki-token-parameter: #953800;
+    --shiki-token-comment: #6e7781;
+}
+
+.dark {
+    --g-color:#79c0ff;                     /* 亮蓝主色 */
+    --g-bg:#0d1117;                        /* 深黑背景 */
+    --glass-r:22;                          /* 玻璃底色 R */
+    --glass-g:27;                          /* 玻璃底色 G */
+    --glass-b:34;                          /* 玻璃底色 B */
+    --g-text:#c9d1d9;                      /* 灰白正文 */
+    --g-hover: #a5d6ff;                    /* 更亮 hover */
+    --g-shadow: rgba(0, 0, 0, 0.50);       /* 深黑阴影 */
+    --g-gradient: linear-gradient(90deg, #58a6ff, #79c0ff, #58a6ff);
+
+    /* shiki CSS 变量主题（暗色档） */
+    --shiki-background: #161b22;
+    --shiki-foreground: #c9d1d9;
+    --shiki-token-keyword: #ff7b72;
+    --shiki-token-function: #d2a8ff;
+    --shiki-token-string-expression: #a5d6ff;
+    --shiki-token-constant: #79c0ff;
+    --shiki-token-parameter: #ffa657;
+    --shiki-token-comment: #8b949e;
+}

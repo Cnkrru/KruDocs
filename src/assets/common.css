@@ -1,0 +1,42 @@
+/* ====================<common.css>==================== */
+
+/* ============ 全局滚动条 ============ */
+/* WebKit 系（Chrome/Edge/Safari）：用伪元素逐层定制 */
+::-webkit-scrollbar {
+  /* 滚动条整体：定宽高 */
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  /* 轨道：透明，只看得到滑块 */
+  background: transparent;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  /* 滑块：渐变主题色 + 内缩 */
+  background: linear-gradient(180deg, var(--g-color), var(--g-hover));
+  border-radius: 10px;
+  border: 2px solid transparent; /* 用透明边框做“内缩” */
+  background-clip: content-box; /* 关键：背景只画在内容区，留出 2px 空隙 */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3); /* 高光描边 */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  /* 悬停：换整条渐变 */
+  background: var(--g-gradient);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  /* 横竖滚动条交汇角 */
+  background: transparent;
+}
+
+/* Firefox：没有伪元素，用标准属性（两行搞定） */
+* {
+  scrollbar-width: thin; /* 细条 */
+  scrollbar-color: var(--g-color) transparent; /* thumb 轨道 */
+}

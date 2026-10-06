@@ -1,0 +1,467 @@
+/* ====================<content.css>==================== */
+
+/* ============ 排版基础 ============ */
+.content {
+  color: var(--g-text);
+  font-size: 16px;
+  line-height: 1.75;
+  overflow-wrap: break-word;
+  min-width: 0; /* 兜底：flex 容器下禁止被内部 min-content（如超长代码行）撑宽 */
+}
+
+/* ============ 标题层级（锚点深链接的 scroll-margin-top 防头部遮挡） ============ */
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6 {
+  margin: 1.5em 0 0.75em;
+  font-weight: 600;
+  line-height: 1.3;
+  scroll-margin-top: 80px;
+}
+.content h1 {
+  font-size: 2em;
+  margin-top: 0.5em;
+}
+.content h2 {
+  font-size: 1.5em;
+}
+.content h3 {
+  font-size: 1.25em;
+}
+.content h4 {
+  font-size: 1.1em;
+}
+.content h5 {
+  font-size: 1em;
+}
+.content h6 {
+  font-size: 0.875em;
+  color: color-mix(in srgb, var(--g-text) 62%, transparent);
+}
+
+/* ============ 段落 / 列表 ============ */
+.content p {
+  margin: 0.9em 0;
+}
+.content ul,
+.content ol {
+  margin: 0.9em 0;
+  padding-left: 1.6em;
+}
+.content li {
+  margin: 0.35em 0;
+}
+.content li::marker {
+  color: var(--g-color);
+}
+
+/* ============ 链接 / 图片 ============ */
+.content a {
+  color: var(--g-color);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--g-color) 40%, transparent);
+  transition: border-bottom-color 0.15s;
+}
+.content a:hover {
+  border-bottom-color: transparent;
+}
+.content img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box; /* 由固定 width:800px 改为满容器宽：避免固定宽把 .content 撑出横向滚动，窄屏图自动缩小 */
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  margin: 2em auto;
+  border: 8px solid var(--g-color);
+  border-radius: 12px;
+}
+
+/* ============ 引用 ============ */
+.content blockquote {
+  margin: 1em 0;
+  padding: 0.6em 1em;
+  border-left: 3px solid var(--g-color);
+  border-radius: 0 8px 8px 0;
+  background: rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.35);
+  color: color-mix(in srgb, var(--g-text) 72%, transparent);
+}
+.content blockquote p {
+  margin: 0.4em 0;
+}
+
+/* ============ 表格（边框 + 表头 + 斑马纹） ============ */
+.content table {
+  width: 100%;
+  margin: 1em 0;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+.content th,
+.content td {
+  padding: 8px 12px;
+  border: 1px solid color-mix(in srgb, var(--g-text) 15%, transparent);
+  text-align: left;
+}
+.content th {
+  background: rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.45);
+  font-weight: 600;
+}
+.content tbody tr:nth-child(2n) {
+  background: rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.22);
+}
+
+/* ============ 行内代码 ============ */
+.content code {
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  background: rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.5);
+  font-size: 0.9em;
+  font-family: ui-monospace, Consolas, 'Courier New', monospace;
+}
+
+/* ============ 代码块（div.language-xx 包装 + pre） ============ */
+.content div[class*='language-'] {
+  position: relative;
+  margin: 1em 0;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--g-color) 15%, transparent);
+  overflow: hidden;
+  max-width: 100%; /* 兜底：自身宽度锁死于正文列，不随内部代码行变宽 */
+}
+.content pre {
+  margin: 0;
+  padding: 16px;
+  overflow-x: auto;
+  font-size: 14px;
+  line-height: 1.6;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box; /* 兜底：pre 恒等于父宽，内容超宽只在 pre 内部横向滚动，绝不撑大外层/正文 */
+}
+.content pre code {
+  padding: 0;
+  background: none;
+  font-size: inherit;
+}
+
+/* 代码块外壳顶栏（语言徽章 + 复制按钮） */
+.content div[class*='language-'] .code-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--g-color) 15%, transparent);
+  background: rgba(var(--glass-r), var(--glass-g), var(--glass-b), 0.45);
+}
+.content div[class*='language-'] .code-toolbar .lang {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--g-text) 55%, transparent);
+  letter-spacing: 0.3px;
+  text-transform: lowercase;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--g-color) 12%, transparent);
+}
+/* 语言徽章圆点：继承徽章文字色，半透明小圆点（对齐 blog-map） */
+.content div[class*='language-'] .code-toolbar .lang .lang-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+/* 语言品牌底色：未列出的语言用上面的主题色兜底 */
+.content div[class*='language-'] .code-toolbar .lang.lang-javascript {
+  background-color: #f0db4f;
+  color: #1e1e2e;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-html {
+  background-color: #e34f26;
+  color: #fff;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-css {
+  background-color: #563d7c;
+  color: #fff;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-vue {
+  background-color: #41b883;
+  color: #1e1e2e;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-json {
+  background-color: #b8b8b8;
+  color: #1e1e2e;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-yaml {
+  background-color: #6b5b95;
+  color: #fff;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-toml {
+  background-color: #4479a1;
+  color: #fff;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-sql {
+  background-color: #00618b;
+  color: #fff;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-python {
+  background-color: #3776ab;
+  color: #fff;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-shell {
+  background-color: #4eaa25;
+  color: #fff;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-markdown {
+  background-color: #519aba;
+  color: #fff;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-mermaid {
+  background-color: #41b883;
+  color: #1e1e2e;
+}
+.content div[class*='language-'] .code-toolbar .lang.lang-csv {
+  background-color: #2a9d8f;
+  color: #fff;
+}
+/* 复制按钮：内联 SVG 图标，成功态切对勾（对齐 blog-map 图标风格） */
+.content div[class*='language-'] .code-toolbar button.copy {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: color-mix(in srgb, var(--g-text) 55%, transparent);
+  cursor: pointer;
+  opacity: 1;
+  transition:
+    opacity 0.2s,
+    color 0.2s;
+}
+.content div[class*='language-']:hover .code-toolbar button.copy {
+  opacity: 1;
+}
+/* 成功态：隐藏复制图标，换成对勾（同 blog-map 交互反馈） */
+.content div[class*='language-'] .code-toolbar button.copy.copied {
+  color: var(--color-success);
+}
+.content div[class*='language-'] .code-toolbar button.copy.copied svg {
+  display: none;
+}
+.content div[class*='language-'] .code-toolbar button.copy.copied::after {
+  content: '';
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>')
+    center/contain no-repeat;
+  mask: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>')
+    center/contain no-repeat;
+}
+
+/* ===== 提示块 admonition（编译期生成，配色见下方变量） ===== */
+.content .admonition {
+  position: relative;
+  margin: 1em 0;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--admo-color) 30%, transparent);
+  border-left: 4px solid var(--admo-color);
+  background: color-mix(in srgb, var(--admo-color) 8%, transparent);
+  overflow: hidden;
+}
+.content .admonition-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  color: var(--admo-color);
+  font-weight: 600;
+  font-size: 14px;
+  background: color-mix(in srgb, var(--admo-color) 12%, transparent);
+}
+.content .admonition-head svg {
+  flex-shrink: 0;
+}
+.content .admonition-body {
+  padding: 10px 14px 12px;
+  color: var(--g-text);
+  font-size: 14px;
+  line-height: 1.7;
+}
+.content .admonition-body > :first-child {
+  margin-top: 0;
+}
+.content .admonition-body > :last-child {
+  margin-bottom: 0;
+}
+.content .admonition-tip {
+  --admo-color: #10b981;
+}
+.content .admonition-info {
+  --admo-color: #3b82f6;
+}
+.content .admonition-warn {
+  --admo-color: #f59e0b;
+}
+.content .admonition-error {
+  --admo-color: #ef4444;
+}
+
+/* 行号（CSS计数器，shiki每行一个span.line，mermaid无shiki类不受影响） */
+.content div[class*='language-'] pre.shiki code {
+  counter-reset: code-line;
+}
+.content div[class*='language-'] pre.shiki code span.line {
+  counter-increment: code-line;
+}
+.content div[class*='language-'] pre.shiki code span.line::before {
+  content: counter(code-line);
+  display: inline-block;
+  width: 2em;
+  margin-right: 1em;
+  text-align: right;
+  color: color-mix(in srgb, var(--g-text) 40%, transparent);
+  user-select: none;
+}
+
+/* ============ 任务列表 ============ */
+.content .task-list-container {
+  padding-left: 0;
+  list-style: none;
+}
+.content .task-list-item input[type='checkbox'] {
+  margin-right: 8px;
+  accent-color: var(--g-color);
+}
+.content .task-list-item .task-list-item-label {
+  vertical-align: 1px;
+}
+
+/* ============ 提示块（directive，语义色） ============ */
+.content .directive {
+  margin: 1em 0;
+  padding: 12px 16px;
+  border: 1px solid;
+  border-radius: 8px;
+}
+.content .directive p {
+  margin: 0.4em 0;
+}
+.content .directive-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.content .directive-info {
+  border-color: color-mix(in srgb, var(--color-info) 40%, transparent);
+  background: color-mix(in srgb, var(--color-info) 10%, transparent);
+}
+.content .directive-info .directive-title {
+  color: var(--color-info);
+}
+.content .directive-warning {
+  border-color: color-mix(in srgb, var(--color-warning) 40%, transparent);
+  background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+}
+.content .directive-warning .directive-title {
+  color: var(--color-warning);
+}
+
+/* ====================<响应式>==================== */
+@media (max-width: 1280px) {
+  /* [响应式-lg] 大屏 */
+}
+
+@media (max-width: 1024px) {
+  /* [响应式-md] 平板：正文整体微收，代码块/表格内边距略减 */
+  .content {
+    font-size: 15px;
+  }
+  .content pre {
+    padding: 14px;
+  }
+  .content th,
+  .content td {
+    padding: 7px 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* [响应式-sm] 手机：字号/标题层级逐级下调，块元素内边距收紧 */
+  .content {
+    font-size: 15px;
+  }
+  .content h1 {
+    font-size: 1.7em;
+  }
+  .content h2 {
+    font-size: 1.35em;
+  }
+  .content h3 {
+    font-size: 1.15em;
+  }
+  .content h4 {
+    font-size: 1.05em;
+  }
+  .content pre {
+    padding: 12px;
+    font-size: 13px;
+  }
+  .content blockquote {
+    padding: 0.5em 0.9em;
+  }
+  .content th,
+  .content td {
+    padding: 6px 8px;
+  }
+  .content div[class*='language-'] .code-toolbar {
+    padding: 5px 10px;
+    overflow-x: auto;
+  }
+  /* 数学公式/宽表在窄屏允许自身横向滚动，不裁切、不撑破正文 */
+  .content .katex-display,
+  .content .katex-block,
+  .content .katex,
+  .content .admonition,
+  .content .directive {
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  /* [响应式-xs] 窄屏：进一步收紧字号与内边距 */
+  .content {
+    font-size: 14px;
+  }
+  .content h1 {
+    font-size: 1.55em;
+  }
+  .content h2 {
+    font-size: 1.25em;
+  }
+  .content h3 {
+    font-size: 1.05em;
+  }
+  .content pre {
+    padding: 10px;
+    font-size: 12px;
+  }
+  .content .admonition-body,
+  .content .directive {
+    padding: 8px 12px;
+  }
+}

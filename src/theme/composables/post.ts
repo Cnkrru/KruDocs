@@ -1,5 +1,8 @@
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
+// 仅取类型：medium-zoom 本体是运行时按需 import 的（见 imageZoom），
+// 类型导入在编译期被擦除，不会把库打进主包
+import type { Zoom } from 'medium-zoom'
 /* ====================<postData>==================== */
 type PostMeta = {
   order: number
@@ -18,8 +21,14 @@ export let postCache: PostData = {}
 
 export const postData = async () => {
   if (Object.keys(postCache).length > 0) return // 有缓存直接读缓存
-  const meta = await axios.get<PostData>('/config/post.json')
-  postCache = meta.data
+  // 原实现直接用全局 axios，但项目并未安装该依赖（无 import、无 CDN），运行时会 ReferenceError。
+  // 这里只是取一份静态 JSON，用原生 fetch 即可，不为此引入新依赖
+  const res = await fetch('/config/post.json')
+  if (!res.ok) {
+    console.error('[ERR]:未获取到post.json全表', res.status)
+    return
+  }
+  postCache = (await res.json()) as PostData
   if (postCache) {
     console.info('[INFO]:已经获取到post.json的数据')
   } else {

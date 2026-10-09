@@ -13,7 +13,12 @@ import { ARTICLE_DIR, MAX_DEPTH } from '../config/site.config.ts'
 
 import MarkdownIt from 'markdown-it'
 import type { Highlighter } from 'shiki'
-import { createHighlighter, createCssVariablesTheme } from 'shiki'
+import {
+  bundledLanguages,
+  bundledLanguagesAlias,
+  createHighlighter,
+  createCssVariablesTheme,
+} from 'shiki'
 import { anchor } from '@mdit/plugin-anchor'
 import { tasklist } from '@mdit/plugin-tasklist'
 import { katex } from '@mdit/plugin-katex'
@@ -21,14 +26,36 @@ import { componentPlugin } from '@mdit-vue/plugin-component'
 import { slugify } from '@mdit-vue/shared'
 import { container } from '@mdit/plugin-container'
 
+// 上下篇链接：编译期按 sidebar.json 展平顺序推导，首篇无 prev、末篇无 next
+type PostNavLink = {
+  title: string
+  link: string
+}
+
 // 文章元数据：无 frontmatter，全部由编译期推导
 // title 取文件名末段，updated 取源文件 mtime
 type ArticleMeta = {
   title: string
   updated: string
+  prev?: PostNavLink | null
+  next?: PostNavLink | null
 }
 
 const highlightTheme = createCssVariablesTheme()
+
+/*
+ * id: KNOWN_LANGS
+ * fn: shiki 可用语言白名单，configLanguage 用它过滤 md 里不受支持的语言名
+ * 不过滤会让 createHighlighter 直接抛 ShikiError 打断 buildStart（dev server 起不来）
+ * text/plaintext 不在 bundledLanguages/bundledLanguagesAlias 表里，但 shiki 内置支持（纯文本、不做着色），
+ * fence 缺省语言与 codeToHtml 的兜底都依赖它，故单独放行
+ */
+const KNOWN_LANGS: ReadonlySet<string> = new Set([
+  ...Object.keys(bundledLanguages),
+  ...Object.keys(bundledLanguagesAlias),
+  'text',
+  'plaintext',
+])
 
 // 语法高亮器，configLanguage 初始化，fence 规则闭包使用
 let highlighter: Highlighter | null = null
@@ -46,18 +73,40 @@ const jsonPath = path.join(rootPath, 'public/config/post.json')
 const postMetaPath = path.join(vuePath, 'post.json')
 
 /*
+ * id: ensureJsonDir
+ * fn: 保证 post.json 的父目录存在
+ * public/config/ 是编译期生成目录（.gitignore 已忽略），首次构建或被手工清掉时压根不存在，
+ * 而 writeFileSync 不会自动建父目录 —— 直接写会 ENOENT。所有写 post.json 的地方都先过这里
+ */
+const ensureJsonDir = () => {
+  fs.mkdirSync(path.dirname(jsonPath), { recursive: true })
+}
+
+/*
  * id: compileSignature
  * fn: 输入签名。一次 build 会跑"客户端+服务端"两次 vite build，且每次构建都重新 import 本模块
  * —— 内存态无法跨构建存活，改用 `.cache/.compile-sig` 磁盘 sidecar：签名一致则短路复用缓存
  *
  * 签名必须掺入本脚本自身的 mtime/size：元数据提取逻辑（如 updated 的兜底来源）改动后，
  * docs/ 一个字没变，签名却必须变化，否则缓存短路会让新逻辑要手动清 .cache 才生效
+ *
+ * 同样必须掺入 sidebar.json：上下篇是按侧栏展平顺序算的，只改侧栏而 docs/ 未动时，
+ * 签名若不变就会短路复用缓存，上下篇永远停在旧顺序
  */
 const compileSignature = (files: string[]): string => {
   const self = fs.statSync(scriptPath)
   const selfTag = `__self__:${self.mtimeMs}:${self.size}`
+  const sidebarTag = (() => {
+    try {
+      const s = fs.statSync(path.join(rootPath, 'src/config/sidebar.json'))
+      return `__sidebar__:${s.mtimeMs}:${s.size}`
+    } catch {
+      return '__sidebar__:missing' // 侧栏缺失时也要占位，否则删掉侧栏不触发重编译
+    }
+  })()
   return [
     selfTag,
+    sidebarTag,
     ...files.map((f) => {
       const s = fs.statSync(path.join(articlePath, f))
       return `${f}:${s.mtimeMs}:${s.size}`
@@ -275,6 +324,7 @@ const jsonPathChecker = () => {
     if (fs.existsSync(jsonPath)) {
       console.log('[INFO]:post.json存在')
     } else {
+      ensureJsonDir()
       fs.writeFileSync(jsonPath, '{}', 'utf8')
       if (fs.existsSync(jsonPath)) {
         console.log('[INFO]:原路径无post.json,创建文件成功')
@@ -343,9 +393,17 @@ const configLanguage = async (files: string[]) => {
       }
     }
   }
+  // 按 shiki 白名单过滤：md 里写了 shiki 不认识的语言名时，createHighlighter 会直接抛
+  // ShikiError 打断 buildStart。这里剔掉并告警，单篇文档的语言名不再拖垮整站编译
+  const usable = [...langSet].filter((lang) => KNOWN_LANGS.has(lang))
+  const dropped = [...langSet].filter((lang) => !KNOWN_LANGS.has(lang))
+  for (const lang of dropped) {
+    console.warn(`[WARN]:代码块语言 shiki 不支持，已按纯文本回退：${lang}`)
+  }
+
   highlighter = await createHighlighter({
     themes: [highlightTheme],
-    langs: [...langSet],
+    langs: usable,
   })
 }
 
@@ -371,7 +429,9 @@ const configFence = (md: InstanceType<typeof MarkdownIt>) => {
   md.renderer.rules.fence = (tokens, idx) => {
     const token = tokens[idx]!
     const info = md.utils.unescapeAll(token.info).trim()
-    const lang = info.split(/\s+/)[0] || 'text'
+    // 统一小写：收集侧（configLanguage）已 toLowerCase，这里不转会让 Cpp/Vue 这类写法
+    // 命中 codeToHtml 的 catch 静默回退成纯文本，等于白丢语法着色
+    const lang = (info.split(/\s+/)[0] || 'text').toLowerCase()
     const safe = safeLang(lang)
 
     if (lang === 'mermaid') {
@@ -472,16 +532,19 @@ const mdParser = (files: string[]) => {
     walkSidebar(sidebarTree)
     // 为每篇文章算 prev/next，写进 articles 元数据
     for (let i = 0; i < flat.length; i++) {
-      const id = flat[i].id
-      if (articles[id]) {
-        const prev = i > 0 ? flat[i - 1] : null
-        const next = i < flat.length - 1 ? flat[i + 1] : null
-        articles[id].prev = prev ? { title: prev.title, link: prev.link } : null
-        articles[id].next = next ? { title: next.title, link: next.link } : null
-      }
+      // noUncheckedIndexedAccess 下 flat[i] 判为可能 undefined，先取出再做空值收敛
+      const cur = flat[i]
+      if (!cur) continue
+      const target = articles[cur.id]
+      if (!target) continue // 侧栏里配了但 docs 下无对应文章的项，静默跳过
+      const prev = i > 0 ? (flat[i - 1] ?? null) : null
+      const next = i < flat.length - 1 ? (flat[i + 1] ?? null) : null
+      target.prev = prev ? { title: prev.title, link: prev.link } : null
+      target.next = next ? { title: next.title, link: next.link } : null
     }
   }
 
+  ensureJsonDir() // 本函数首个写入点，父目录在这里兜底（jsonPathChecker 可能因短路未执行）
   fs.writeFileSync(jsonPath, JSON.stringify(articles, null, 4), 'utf8')
   return articles
 }
@@ -501,6 +564,7 @@ const manager = async () => {
   // 下游 includedRoutes 会照着这些幽灵产物预渲染出已不存在的文章页
   if (files.length === 0) {
     vuePathChecker(new Set())
+    ensureJsonDir()
     fs.writeFileSync(jsonPath, '{}', 'utf8')
     syncPostMeta()
     fs.writeFileSync(path.join(vuePath, '.compile-sig'), compileSignature([]), 'utf8')
